@@ -506,7 +506,8 @@
     let hasTriedBackup = false;
     let currentServer = null;
     let latestValues = { temp: null, humi: null, i: null };
-    let lastHistorySignature = "";
+    let tempDirty = false;
+    let humiDirty = false;
     const historyRows = [];
 
     const statusDot = document.getElementById("statusDot");
@@ -591,6 +592,7 @@
     }
 
     function updateTemp(value) {
+      tempDirty = true;
       updateSensorDisplay("temp", value, "資料更新正常");
       if (value >= 30) {
         setCard(sensors.temp, "danger", "危險", true);
@@ -604,6 +606,7 @@
     }
 
     function updateHumi(value) {
+      humiDirty = true;
       updateSensorDisplay("humi", value, "資料更新正常");
       if (value >= 80) {
         setCard(sensors.humi, "danger", "危險", true);
@@ -715,12 +718,10 @@
 
     function tryAppendHistory() {
       if (latestValues.temp === null || latestValues.humi === null) return;
+      if (!tempDirty || !humiDirty) return;
 
       const now = new Date();
       const time = now.toLocaleTimeString();
-      const signature = `${now.getTime()}-${latestValues.temp}-${latestValues.humi}-${latestValues.i}-${currentServer}`;
-      if (signature === lastHistorySignature) return;
-      lastHistorySignature = signature;
 
       historyRows.unshift({
         time,
@@ -729,6 +730,9 @@
         i: latestValues.i ?? "--",
         broker: currentServer || "--"
       });
+
+      tempDirty = false;
+      humiDirty = false;
 
       if (historyRows.length > HISTORY_LIMIT) historyRows.pop();
 
@@ -847,11 +851,14 @@
         setCard(sensor, "offline", "尚無資料");
       });
       latestValues = { temp: null, humi: null, i: null };
+      tempDirty = false;
+      humiDirty = false;
     }
 
     function clearHistory() {
       historyRows.length = 0;
-      lastHistorySignature = "";
+      tempDirty = false;
+      humiDirty = false;
       renderHistoryTable();
       updateChart();
       updateStats();
