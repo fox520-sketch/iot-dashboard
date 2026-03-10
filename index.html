@@ -465,7 +465,7 @@
     <div class="card" style="margin-top:16px;">
       <div class="history-header">
         <h2 style="margin:0;">📋 資料歷史紀錄</h2>
-        <div class="history-note">最新 100 筆。溫度與濕度至少有值後，任何新訊息都會記錄一列。</div>
+        <div class="history-note">表格顯示最新 100 筆，但歷史筆數會持續累加。溫度與濕度至少各收到 1 筆後才記錄一列。</div>
       </div>
       <div class="table-wrap">
         <table>
@@ -508,6 +508,7 @@
     let latestValues = { temp: null, humi: null, i: null };
     let tempDirty = false;
     let humiDirty = false;
+    let totalHistoryCount = 0;
     const historyRows = [];
 
     const statusDot = document.getElementById("statusDot");
@@ -731,6 +732,7 @@
         broker: currentServer || "--"
       });
 
+      totalHistoryCount += 1;
       tempDirty = false;
       humiDirty = false;
 
@@ -777,7 +779,7 @@
 
       avgTempEl.textContent = tempValues.length ? `${avg(tempValues.slice(0, CHART_LIMIT))} °C` : "--";
       avgHumiEl.textContent = humiValues.length ? `${avg(humiValues.slice(0, CHART_LIMIT))} %` : "--";
-      historyCountEl.textContent = String(historyRows.length);
+      historyCountEl.textContent = String(totalHistoryCount);
 
       maxTempEl.textContent = tempValues.length ? `${max(tempValues)} °C` : "--";
       minTempEl.textContent = tempValues.length ? `${min(tempValues)} °C` : "--";
@@ -857,6 +859,7 @@
 
     function clearHistory() {
       historyRows.length = 0;
+      totalHistoryCount = 0;
       tempDirty = false;
       humiDirty = false;
       renderHistoryTable();
