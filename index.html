@@ -559,8 +559,12 @@
       }
     };
 
+    function formatTime(date = new Date()) {
+      return date.toLocaleTimeString("zh-TW", { hour12: false });
+    }
+
     function addLog(text) {
-      const now = new Date().toLocaleTimeString();
+      const now = formatTime();
       logEl.textContent += `[${now}] ${text}\n`;
       logEl.scrollTop = logEl.scrollHeight;
     }
@@ -587,7 +591,7 @@
       const sensor = sensors[key];
       sensor.lastUpdate = Date.now();
       sensor.value.textContent = key === "i" ? `${value}` : `${value} ${sensor.unit}`;
-      sensor.time.textContent = `最後更新：${new Date(sensor.lastUpdate).toLocaleTimeString()}`;
+      sensor.time.textContent = `最後更新：${formatTime(new Date(sensor.lastUpdate))}`;
       sensor.extra.textContent = extraText || "資料更新正常";
       latestValues[key] = value;
     }
@@ -722,7 +726,7 @@
       if (!tempDirty || !humiDirty) return;
 
       const now = new Date();
-      const time = now.toLocaleTimeString();
+      const time = formatTime(now);
 
       historyRows.unshift({
         time,
@@ -879,7 +883,8 @@
         csv += `${r.time},${r.temp},${r.humi},${r.i},${r.broker}\n`;
       });
 
-      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const bom = "\uFEFF";
+      const blob = new Blob([bom + csv], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
